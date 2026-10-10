@@ -223,7 +223,12 @@ int swappiness_threshold2_size = 0;
 int direct_vm_swappiness = 60;
 #endif /*OPLUS_FEATURE_ZRAM_OPT*/
 #ifdef CONFIG_HYBRIDSWAP_SWAPD
-static int hybridswapd_swappiness = 200;
+/*
+ * Mystic Kernel: was 200. 200 is extremely aggressive and causes constant
+ * zram swap churn -> reclaim jitter. The ROM's own props (persist.sys.memplus
+ * .swappiness) and the vendor post_boot target 100, so match that.
+ */
+static int hybridswapd_swappiness = 100;
 #endif
 
 /*

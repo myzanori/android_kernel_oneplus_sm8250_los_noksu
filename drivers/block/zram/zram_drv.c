@@ -977,6 +977,12 @@ static ssize_t comp_algorithm_store(struct device *dev,
 	if (!zcomp_available_algorithm(compressor))
 		return -EINVAL;
 
+	/* Mystic Kernel: Enforce lz4 for low CPU overhead and zero swap jitter */
+	if (!strcmp(compressor, "zstd") && zcomp_available_algorithm("lz4")) {
+		pr_info("zram: overriding userspace %s with lz4 for zero jitter\n", compressor);
+		strcpy(compressor, "lz4");
+	}
+
 	down_write(&zram->init_lock);
 	if (init_done(zram)) {
 		up_write(&zram->init_lock);
@@ -1360,7 +1366,8 @@ compress_again:
 				__GFP_NOWARN |
 				__GFP_HIGHMEM |
 				__GFP_MOVABLE |
-				__GFP_CMA);
+				__GFP_CMA |
+				___GFP_HIGH_ATOMIC_ZRAM);
 	if (!handle) {
 		zcomp_stream_put(zram->comp);
 		atomic64_inc(&zram->stats.writestall);
@@ -1610,7 +1617,8 @@ compress_again:
 				__GFP_NOWARN |
 				__GFP_HIGHMEM |
 				__GFP_MOVABLE |
-				__GFP_CMA);
+				__GFP_CMA |
+				___GFP_HIGH_ATOMIC_ZRAM);
 	if (!entry) {
 		zcomp_stream_put(zram->comp);
 		atomic64_inc(&zram->stats.writestall);

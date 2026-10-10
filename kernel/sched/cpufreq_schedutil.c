@@ -1754,8 +1754,16 @@ static int sugov_init(struct cpufreq_policy *policy)
 		goto stop_kthread;
 	}
 
-	tunables->up_rate_limit_us = cpufreq_policy_transition_delay_us(policy);
-	tunables->down_rate_limit_us = cpufreq_policy_transition_delay_us(policy);
+	/*
+	 * Mystic Kernel: anti-flap rate limits.
+	 * This platform reports a transition delay of 0, which lets the
+	 * governor re-evaluate/change frequency on every sample and causes
+	 * visible UI jitter. Use small, sane limits instead:
+	 *   up   0.5 ms  -> stays responsive
+	 *   down 2.0 ms  -> damps rapid down-scaling (anti-flap)
+	 */
+	tunables->up_rate_limit_us = 500;
+	tunables->down_rate_limit_us = 2000;
 	tunables->hispeed_load = DEFAULT_HISPEED_LOAD;
 	tunables->hispeed_freq = 0;
 #ifdef OPLUS_FEATURE_POWER_CPUFREQ

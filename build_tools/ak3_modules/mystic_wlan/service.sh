@@ -1,8 +1,8 @@
 #!/system/bin/sh
 MODDIR=${0%/*}
 
-# Ensure WLAN module is loaded
-if ! lsmod | grep -q wlan; then
+# Ensure WLAN module is loaded (only if not built into the kernel)
+if [ ! -d /sys/module/wlan ] && [ -f "$MODDIR/wlan.ko" ]; then
     insmod "$MODDIR/wlan.ko" 2>/dev/null
 fi
 

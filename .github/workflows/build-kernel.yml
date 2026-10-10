@@ -1,4 +1,4 @@
-name: Build Mystic Kernel & Release to Telegram
+name: Build Mystic Kernel & Release
 
 on:
   push:
@@ -10,16 +10,27 @@ on:
       - 'mystic-*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    name: Build Kernel & Post to Telegram
+    name: Build Kernel & Publish Release
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Kernel Source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
+
+      - name: Determine Dynamic Version
+        run: |
+          . ./mystic_version.sh
+          echo "MYSTIC_VERSION=$MYSTIC_VERSION" >> $GITHUB_ENV
+          echo "MYSTIC_PREFIX=$MYSTIC_PREFIX" >> $GITHUB_ENV
+          echo "MYSTIC_LOCALVERSION=$MYSTIC_LOCALVERSION" >> $GITHUB_ENV
+          echo "Building Mystic Kernel version: $MYSTIC_VERSION"
 
       - name: Install Build Dependencies
         run: |
@@ -55,17 +66,27 @@ jobs:
         run: |
           bash build_tools/build_anykernel.sh
 
-      - name: Upload Single AnyKernel3 Zip to Telegram
+      - name: Upload Single AnyKernel3 Zip & Manager APK to Telegram
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT: ${{ secrets.TG_CHAT }}
-          RELEASE_TAG: "v1.0.30"
         run: |
           python3 build_tools/send_telegram.py
 
-      - name: Upload AnyKernel3 Artifact to GitHub
+      - name: Upload Release Artifacts to GitHub Actions
         uses: actions/upload-artifact@v4
         with:
-          name: Mystic-Kernel-OnePlus9R-OOS14-AnyKernel3
-          path: release_out/*.zip
+          name: Mystic-Kernel-OnePlus9R-OOS14-v${{ env.MYSTIC_VERSION }}
+          path: release_out/*
           if-no-files-found: error
+
+      - name: Create GitHub Release & Tag
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        with:
+          tag_name: mystic-v${{ env.MYSTIC_VERSION }}
+          name: Mystic Kernel v${{ env.MYSTIC_VERSION }} — OnePlus 9R (OOS14)
+          files: release_out/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

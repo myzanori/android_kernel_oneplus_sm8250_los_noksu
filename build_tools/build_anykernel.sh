@@ -26,9 +26,27 @@ PY
 . "$KERNEL_DIR/.oplus_env.sh"
 
 # 3. Compiler Configuration
-CLANG_DIR="${CLANG_DIR:-$KERNEL_DIR/clang-10}"
-GCC64_DIR="${GCC64_DIR:-$KERNEL_DIR/toolchains/gcc-64}"
-GCC32_DIR="${GCC32_DIR:-$KERNEL_DIR/toolchains/gcc-32}"
+if [ -z "${CLANG_DIR:-}" ]; then
+    if [ -d "$KERNEL_DIR/clang-10" ]; then
+        CLANG_DIR="$KERNEL_DIR/clang-10"
+    elif [ -d "$KERNEL_DIR/../clang-10" ]; then
+        CLANG_DIR="$KERNEL_DIR/../clang-10"
+    fi
+fi
+if [ -z "${GCC64_DIR:-}" ]; then
+    if [ -d "$KERNEL_DIR/toolchains/gcc-64" ]; then
+        GCC64_DIR="$KERNEL_DIR/toolchains/gcc-64"
+    elif [ -d "$KERNEL_DIR/../toolchains/gcc-64" ]; then
+        GCC64_DIR="$KERNEL_DIR/../toolchains/gcc-64"
+    fi
+fi
+if [ -z "${GCC32_DIR:-}" ]; then
+    if [ -d "$KERNEL_DIR/toolchains/gcc-32" ]; then
+        GCC32_DIR="$KERNEL_DIR/toolchains/gcc-32"
+    elif [ -d "$KERNEL_DIR/../toolchains/gcc-32" ]; then
+        GCC32_DIR="$KERNEL_DIR/../toolchains/gcc-32"
+    fi
+fi
 
 if [ -d "$GCC64_DIR/bin" ]; then
     for f in "$GCC64_DIR"/bin/aarch64-linux-android-*; do
@@ -81,14 +99,26 @@ echo ">>> Applying Mystic Kernel Configuration..."
 ./scripts/config --file out/.config --set-str LOCALVERSION "$MYSTIC_LOCALVERSION"
 ./scripts/config --file out/.config --disable LOCALVERSION_AUTO
 ./scripts/config --file out/.config --disable MODULE_SIG_FORCE
+
+# VINTF Compatibility & Module Loading
+# MODVERSIONS MUST stay =n for this tree. The ROM's vendor modules are built
+# for 4.19.157; loading them into 4.19.325 with mismatched struct offsets is
+# exactly what causes the "spinning logo" userspace hang. =n makes same_magic()
+# reject them (vermagic mismatch), so only our own in-tree modules load.
 ./scripts/config --file out/.config --disable MODVERSIONS
 ./scripts/config --file out/.config --enable MODULE_FORCE_LOAD
+./scripts/config --file out/.config --enable RD_LZ4
 
 # KSU & SUSFS
 ./scripts/config --file out/.config --enable KSU
 ./scripts/config --file out/.config --enable KSU_MULTI_MANAGER_SUPPORT
 ./scripts/config --file out/.config --enable KSU_SUSFS
 ./scripts/config --file out/.config --enable KSU_SUSFS_SUS_PATH
+# NOTE: SUS_MOUNT must stay enabled in this tree. The SUSFS patch here makes
+# show_fdinfo() take a 3-arg callback whenever SUS_KSTAT is on, but only makes
+# inotify_fdinfo()/fanotify_fdinfo() 3-arg when SUS_MOUNT is on - so
+# SUS_MOUNT=n + SUS_KSTAT=y fails to compile. (NoMount, the actual WiFi/GNSS
+# culprit, is disabled separately and removed on-device.)
 ./scripts/config --file out/.config --enable KSU_SUSFS_SUS_MOUNT
 ./scripts/config --file out/.config --enable KSU_SUSFS_SUS_KSTAT
 ./scripts/config --file out/.config --enable KSU_SUSFS_SPOOF_UNAME
@@ -97,6 +127,10 @@ echo ">>> Applying Mystic Kernel Configuration..."
 ./scripts/config --file out/.config --enable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
 ./scripts/config --file out/.config --enable KSU_SUSFS_OPEN_REDIRECT
 ./scripts/config --file out/.config --enable KSU_SUSFS_SUS_MAP
+# Kernel-side NoMount (VFS path redirection), upstream v2.1.0 (fs/nomount/).
+# Required for the NoMount v2.1.0 metamodule; without matching kernel support
+# the module reports "Kernel not patched or module failed to load".
+./scripts/config --file out/.config --enable NOMOUNT
 
 # Networking & Latency
 ./scripts/config --file out/.config --enable TCP_CONG_ADVANCED
@@ -150,19 +184,14 @@ cp out/arch/arm64/boot/Image "$AK3_DIR/Image"
 # Copy AnyKernel script
 cp "$KERNEL_DIR/build_tools/anykernel.sh" "$AK3_DIR/anykernel.sh"
 
-# Strip & Copy WLAN driver
-mkdir -p "$AK3_DIR/modules/mystic_wlan"
-cp -rf "$KERNEL_DIR/build_tools/ak3_modules/mystic_wlan/"* "$AK3_DIR/modules/mystic_wlan/"
-
-if [ -f out/drivers/staging/qcacld-3.0/wlan.ko ]; then
-    echo ">>> Stripping wlan.ko..."
-    "$STRIP_BIN" --strip-unneeded -o "$AK3_DIR/modules/mystic_wlan/wlan.ko" out/drivers/staging/qcacld-3.0/wlan.ko
-fi
-
 # Create Release Output Directory
 RELEASE_OUT="$KERNEL_DIR/release_out"
-rm -rf "$RELEASE_OUT"
 mkdir -p "$RELEASE_OUT"
+rm -f "$RELEASE_OUT"/*AnyKernel3.zip
+
+if [ -d "$KERNEL_DIR/build_tools/manager" ]; then
+    cp -f "$KERNEL_DIR/build_tools/manager/"*.apk "$RELEASE_OUT/" 2>/dev/null || true
+fi
 
 ZIP_NAME="${MYSTIC_PREFIX}_${MYSTIC_FLAVOUR}_AnyKernel3.zip"
 ZIP_PATH="$RELEASE_OUT/$ZIP_NAME"
