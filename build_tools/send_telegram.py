@@ -1,5 +1,6 @@
 import os
 import glob
+import subprocess
 import urllib.request
 import urllib.parse
 import json
@@ -44,13 +45,14 @@ def main():
     # Determine version tag from mystic_version.sh or target zip
     tag = os.environ.get('RELEASE_TAG', '')
     if not tag:
-        if os.path.isfile("mystic_version.sh"):
-            with open("mystic_version.sh") as vf:
-                for line in vf:
-                    if line.strip().startswith("export MYSTIC_VERSION="):
-                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                        tag = f"v{val}"
-                        break
+        try:
+            val = subprocess.check_output(
+                ["bash", "-c", ". ./mystic_version.sh >/dev/null 2>&1 && echo $MYSTIC_VERSION"]
+            ).decode().strip()
+            if val:
+                tag = f"v{val}"
+        except Exception:
+            pass
     if not tag:
         tag = 'v1.0.35'
 
