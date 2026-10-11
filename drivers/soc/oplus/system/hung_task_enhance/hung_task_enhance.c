@@ -69,6 +69,8 @@ static bool is_ignore_process(struct task_struct *t)
 		!strncmp(t->comm,"opmonitor_boot", TASK_COMM_LEN)||
 		!strncmp(t->comm,"panic_flush", TASK_COMM_LEN)||
 		!strncmp(t->comm,"fb_flush", TASK_COMM_LEN)||
+		!strncmp(t->comm,"uid_add_thread", TASK_COMM_LEN)||
+		!strncmp(t->comm,"uid_remove_thre", TASK_COMM_LEN)||
 		!strncmp(t->comm,"crtc_commit", DISP_TASK_COMM_LEN_MASK)||
 		!strncmp(t->comm,"crtc_event", DISP_TASK_COMM_LEN_MASK)){
 		return true;

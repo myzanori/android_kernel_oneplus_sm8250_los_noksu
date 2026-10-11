@@ -4923,8 +4923,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
 	 */
 	if (WARN_ON_ONCE((gfp_mask & (__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)) ==
 #ifdef OPLUS_FEATURE_PERFORMANCE
-				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)) &&
-                !(gfp_mask & ___GFP_HIGH_ATOMIC_ZRAM))
+				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM) &&
+				!(gfp_mask & ___GFP_HIGH_ATOMIC_ZRAM)))
 #else
 				(__GFP_ATOMIC|__GFP_DIRECT_RECLAIM)))
 #endif
