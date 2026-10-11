@@ -31,7 +31,10 @@ device.name18=IN2021
 device.name19=20809
 device.name20=20828
 device.name21=20838
-supported.versions=11-16
+device.name22=opkona
+device.name23=ossi
+device.name24=kona
+supported.versions=11-18
 supported.patchlevels=
 supported.vendorpatchlevels=
 '; } # end properties

@@ -40,6 +40,7 @@ def upload_document(token, chat_id, filepath, caption, content_type="application
 
 def main():
     token = os.environ.get('TG_TOKEN', '') or '8076560051:AAEDNzRjLDg-i8zCBnC74voDuG8I2eK3flY'
+    chat_id = os.environ.get('TG_CHAT', '') or '-1004359090071'
     # Determine version tag from mystic_version.sh or target zip
     tag = os.environ.get('RELEASE_TAG', '')
     if not tag:
@@ -51,7 +52,7 @@ def main():
                         tag = f"v{val}"
                         break
     if not tag:
-        tag = 'v1.0.31'
+        tag = 'v1.0.35'
 
     if not token or not chat_id:
         print("Telegram token or chat_id not provided. Skipping Telegram upload.")
@@ -70,26 +71,24 @@ def main():
     target_zip = zip_files[0]
     sha256 = get_sha256(target_zip)
 
-    caption = f"""<b>Mystic Kernel {tag} — OnePlus 9R</b>
+    caption = f"""<b>Mystic Kernel {tag} — Universal Kona (9R / 8T)</b>
 
-• <b>Device</b>: OnePlus 9R (lemonades / LE2101)
-• <b>ROM</b>: OxygenOS 14 (Android 14)
-• <b>Kernel</b>: 4.19.325-perf-Mystic-9R-myzanori-OOS14-{tag}
-• <b>Root &amp; Stealth</b>: BakaSU (35212) + SUSFS v2.3.0 + NoMount
-• <b>Camera</b>: 8/8 Sensors Online (PM8008 16-bit fix)
-• <b>Torch &amp; WLAN</b>: Triple LED + Native QCA Wi-Fi
-• <b>Tuning</b>: LZ4 ZRAM + Deadline I/O + BBR TCP
+• <b>Devices</b>: OnePlus 9R (lemonades) &amp; OnePlus 8T (kebab)
+• <b>ROM Support</b>: OxygenOS 14 &amp; ColorOS 17 (Android 14–17)
+• <b>Kernel</b>: Linux 4.19.325-perf-Mystic-Kona-myzanori-{tag}
+• <b>Root &amp; Stealth</b>: ReSukiSU / BakaSU + SUSFS v2.3.0 + NoMount v2.1.0
+• <b>Camera &amp; Audio</b>: Full 8/8 camera sensors + TFA98xx audio fix
+• <b>Tuning</b>: LZ4 ZRAM + Deadline I/O + BBR TCP + FQ-CoDel
 • <b>SELinux</b>: Enforcing | <b>Dev</b>: @myzanori
 
 <b>Changelog:</b>
 <blockquote>
-• Upstreamed to Linux 4.19.325 for OnePlus 9R OOS14
-• Integrated BakaSU (35212) &amp; SUSFS v2.3.0 stealth
-• Added NoMount path redirection VFS subsystem
-• Fixed PM8008 16-bit regulator parsing for camera rails
-• Enforced boot-time LZ4 ZRAM swap for zero jitter
-• Deadline I/O scheduler &amp; BBR TCP congestion control
-• Embedded high-performance schedutil tuning
+• Added <code>opkona</code>, <code>ossi</code>, and <code>kona</code> device codenames to AnyKernel3 installation verification for ColorOS 17
+• Extended supported Android versions in AnyKernel3 to Android 11–18
+• Fixed mm/page_alloc atomic reclaim check condition syntax
+• Fixed hung_task_enhance false positive timeouts on uid_add/remove_thread
+• Universal SM8250 Kona compatibility for both OnePlus 9R and 8T
+• Pre-configured NoMount v2.1.0 and SUSFS v2.3.0 kernel hooks
 </blockquote>
 <b>SHA-256:</b> <code>{sha256}</code>"""
 
