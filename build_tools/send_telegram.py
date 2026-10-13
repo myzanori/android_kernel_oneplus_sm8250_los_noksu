@@ -13,48 +13,45 @@ def get_sha256(filepath):
             h.update(chunk)
     return h.hexdigest()
 
-def upload_document(token, chat_id, filepath, caption, content_type="application/zip"):
-    filename = os.path.basename(filepath)
-    file_size_mb = os.path.getsize(filepath) / (1024 * 1024)
-    print(f"Uploading {filename} ({file_size_mb:.2f} MB) to Telegram chat {chat_id}...")
+def send_single_post_release(token, chat_id, files_with_types, caption):
+    boundary = "----WebKitFormBoundaryMediaGroup9R8T"
+    media_json = []
 
-    boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW'
-    body = []
-    body.append(f'--{boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n{chat_id}\r\n')
-    body.append(f'--{boundary}\r\nContent-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n')
-    body.append(f'--{boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n{caption}\r\n')
-    body.append(f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{filename}"\r\nContent-Type: {content_type}\r\n\r\n')
+    for i, (fp, ctype) in enumerate(files_with_types):
+        item = {
+            "type": "document",
+            "media": f"attach://file{i}"
+        }
+        if i == 0:
+            item["caption"] = caption
+            item["parse_mode"] = "HTML"
+        media_json.append(item)
 
-    with open(filepath, 'rb') as f:
-        file_bytes = f.read()
+    parts = []
+    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n{chat_id}\r\n".encode("utf-8"))
+    parts.append(f"--{boundary}\r\nContent-Disposition: form-data; name=\"media\"\r\n\r\n{json.dumps(media_json)}\r\n".encode("utf-8"))
 
-    full_body = "".join(body).encode('utf-8') + file_bytes + f'\r\n--{boundary}--\r\n'.encode('utf-8')
+    for i, (fp, ctype) in enumerate(files_with_types):
+        fname = os.path.basename(fp)
+        header = f"--{boundary}\r\nContent-Disposition: form-data; name=\"file{i}\"; filename=\"{fname}\"\r\nContent-Type: {ctype}\r\n\r\n".encode("utf-8")
+        with open(fp, "rb") as f:
+            content = f.read()
+        parts.append(header + content + b"\r\n")
+
+    parts.append(f"--{boundary}--\r\n".encode("utf-8"))
+    full_body = b"".join(parts)
+
+    print(f"Sending all release files in a single post media group ({len(full_body)/(1024*1024):.2f} MB)...")
     req = urllib.request.Request(
-        f"https://api.telegram.org/bot{token}/sendDocument",
+        f"https://api.telegram.org/bot{token}/sendMediaGroup",
         data=full_body,
         headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
     )
-    with urllib.request.urlopen(req) as resp:
-        res_data = resp.read().decode('utf-8')
-        print(f"Telegram upload success ({filename}): {res_data[:120]}...")
-        return json.loads(res_data)
 
-def send_message(token, chat_id, text):
-    print(f"Posting announcement message to Telegram chat {chat_id}...")
-    data = urllib.parse.urlencode({
-        'chat_id': chat_id,
-        'text': text,
-        'parse_mode': 'HTML',
-        'disable_web_page_preview': 'true'
-    }).encode('utf-8')
-    req = urllib.request.Request(
-        f"https://api.telegram.org/bot{token}/sendMessage",
-        data=data
-    )
     with urllib.request.urlopen(req) as resp:
-        res_data = resp.read().decode('utf-8')
-        print(f"Telegram message post success: {res_data[:120]}...")
-        return json.loads(res_data)
+        res = resp.read().decode("utf-8")
+        print("Telegram upload success (Single Post):", res[:120])
+        return json.loads(res)
 
 def main():
     token = os.environ.get('TG_TOKEN', '') or '8076560051:AAEDNzRjLDg-i8zCBnC74voDuG8I2eK3flY'
@@ -86,7 +83,6 @@ def main():
         print("No release AnyKernel3 zip file found!")
         return
     kernel_zip = zip_files[0]
-    kernel_sha = get_sha256(kernel_zip)
 
     # 2. ReSukiSU Root Manager APK
     apk_files = glob.glob('release_out/ReSukiSU_v4.2.0-rc3_35184*.apk')
@@ -96,7 +92,6 @@ def main():
         print("No ReSukiSU APK found!")
         return
     resukisu_apk = apk_files[0]
-    apk_sha = get_sha256(resukisu_apk)
 
     # 3. Logger Module Zip
     logger_files = glob.glob('release_out/Logger_v*.zip')
@@ -106,81 +101,37 @@ def main():
         print("No Logger module zip found!")
         return
     logger_zip = logger_files[0]
-    logger_sha = get_sha256(logger_zip)
 
-    # Upload all 3 files FIRST (at the top of the post)
-    print("\n--- Sending Release Files (Top of post) ---")
-    
-    kernel_caption = f"""📦 <b>Mystic Kernel {tag} — Universal Kona (9R / 8T)</b>
-• <b>Target</b>: OnePlus 9R (lemonades) &amp; OnePlus 8T (kebab)
-• <b>Format</b>: Flashable AnyKernel3 Zip
-• <b>SHA-256</b>: <code>{kernel_sha}</code>"""
+    files_with_types = [
+        (kernel_zip, "application/zip"),
+        (resukisu_apk, "application/vnd.android.package-archive"),
+        (logger_zip, "application/zip")
+    ]
 
-    apk_caption = f"""📱 <b>ReSukiSU Manager App (35184)</b>
-• <b>Target</b>: Official Root Manager for Mystic Kernel {tag}
-• <b>Architecture</b>: arm64-v8a (OnePlus 9R / 8T)
-• <b>Installation</b>: Direct APK — Tap file to install
-• <b>SHA-256</b>: <code>{apk_sha}</code>"""
+    caption = f"""🔥 <b>MYSTIC KERNEL {tag} — UNIVERSAL KONA</b> 🔥
+• <b>Devices</b>: OnePlus 9R &amp; OnePlus 8T
+• <b>ROMs</b>: OxygenOS 14 &amp; ColorOS 14–17
+• <b>Kernel</b>: 4.19.325-perf-Mystic-Kona-myzanori-{tag}
+• <b>Root &amp; Stealth</b>: ReSukiSU (35184) + SUSFS v2.3.0 + NoMount v2.1.0
+• <b>Tuning</b>: LZ4 ZRAM + UFS 3.1 Smooth Writeback + BBR TCP
 
-    logger_caption = f"""🛠 <b>Logger Module v1.2 (Zero-Overhead)</b>
-• <b>Target</b>: Autonomous on-device diagnostic logger
-• <b>Installation</b>: Flash via KernelSU / ReSukiSU Modules
-• <b>On-Demand Trigger</b>: <code>su -c mystic_snapshot</code>
-• <b>SHA-256</b>: <code>{logger_sha}</code>"""
-
-    upload_document(token, chat_id, kernel_zip, kernel_caption, content_type="application/zip")
-    upload_document(token, chat_id, resukisu_apk, apk_caption, content_type="application/vnd.android.package-archive")
-    upload_document(token, chat_id, logger_zip, logger_caption, content_type="application/zip")
-
-    # Post the Master Announcement & Changelog right below the files
-    print("\n--- Sending Master Announcement & Changelog Post ---")
-    post_text = f"""🔥 <b>MYSTIC KERNEL {tag} — UNIVERSAL KONA</b> 🔥
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-<i>The ultimate stable, smooth &amp; battery-optimized daily driver for OnePlus 9R &amp; 8T</i>
-
-📱 <b>Supported Devices:</b>
-• OnePlus 9R (lemonades / LE2101)
-• OnePlus 8T (kebab / KB2001 / KB2000)
-
-💿 <b>ROM &amp; Android Compatibility:</b>
-• OxygenOS 14 (Android 14)
-• ColorOS 14 / 15 / 17 (Android 14–17)
-
-⚡ <b>Core Architecture &amp; Stealth:</b>
-• <b>Linux Kernel</b>: 4.19.325-perf-Mystic-Kona-myzanori-{tag}
-• <b>Root Framework</b>: ReSukiSU v4.1.0 / BakaSU (35184)
-• <b>Kernel-side Stealth</b>: SUSFS v2.3.0 (Non-GKI Inline Hooks)
-• <b>Path Redirection</b>: NoMount v2.1.0 (Lockless RCU VFS)
-• <b>SELinux</b>: Enforcing &amp; Fully Compatible
-
-🚀 <b>Performance &amp; Battery Optimizations:</b>
-• <b>Memory &amp; Swap</b>: Enforced LZ4 ZRAM swap (3.7:1 ratio, zero CPU overhead)
-• <b>Storage I/O</b>: Smooth UFS 3.1 writeback (<code>dirty_background_ratio=5%</code>)
-• <b>Governor</b>: Schedutil anti-flap rate limits (<code>up=500us</code>, <code>down=2000us</code>)
-• <b>Network</b>: Google BBR TCP Congestion Control + FQ-CoDel
-• <b>Audio &amp; Camera</b>: Full 8/8 Camera LDO rails online + TFA98xx audio amp fix
-
-📝 <b>Changelog ({tag}):</b>
+<b>Changelog:</b>
 <blockquote>
-• <b>Zero-Lag UFS Writeback:</b> Tuned dirty page writeback to 5% and 15% to eliminate background sync micro-stutters.
-• <b>Clean Boot Logs:</b> Silenced speculative MTP high-order buffer allocation dumps with __GFP_NOWARN.
-• <b>Memory Allocation Fix:</b> Resolved page_alloc atomic reclaim check warning in zsmalloc via GFP_RECLAIM_MASK preservation.
-• <b>Driver Guard:</b> Added multi-PMIC protection to eliminate duplicate /proc/pmicWd registration warnings.
-• <b>Logger v1.2:</b> Replaced live background logger with a zero-overhead snapshot tool (0% background CPU/disk usage).
-• <b>Verified 100% Clean:</b> 0 Warnings, 0 Bugs, 0 Call Traces across entire boot cycle.
+• <b>Smooth UFS:</b> Tuned dirty ratios (5%/15%) to eliminate micro-stutters
+• <b>Clean Boot:</b> Silenced MTP order-8 alloc dump with __GFP_NOWARN
+• <b>Memory Fix:</b> Resolved page_alloc atomic warning in zsmalloc
+• <b>Multi-PMIC Guard:</b> Prevented duplicate /proc/pmicWd registration
+• <b>Logger v1.2:</b> Zero-overhead tool with 0% background battery drain
+• <b>100% Clean:</b> 0 Warnings, 0 Bugs, 0 Call Traces across entire boot
 </blockquote>
+📦 <b>Attached in this Single Post:</b>
+1. Kernel AnyKernel3 Zip
+2. ReSukiSU Manager App (APK)
+3. Logger Module v1.2 Zip
+👨‍💻 <b>Dev</b>: @myzanori | 💬 <b>Channel</b>: @mystickernel9r"""
 
-📦 <b>Files Attached Above:</b>
-1. <code>{os.path.basename(kernel_zip)}</code>
-2. <code>{os.path.basename(resukisu_apk)}</code>
-3. <code>{os.path.basename(logger_zip)}</code>
-
-👨‍💻 <b>Developer:</b> @myzanori
-💬 <b>Channel:</b> @mystickernel9r
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━"""
-
-    send_message(token, chat_id, post_text)
-    print("\n✅ All 3 release files and the master announcement post successfully sent to Telegram!")
+    send_single_post_release(token, chat_id, files_with_types, caption)
+    print("\n✅ Single post media group release successfully broadcast to Telegram!")
 
 if __name__ == '__main__':
     main()
