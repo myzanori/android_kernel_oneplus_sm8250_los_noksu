@@ -58,6 +58,7 @@
 	}
 
 static struct proc_dir_entry *oplus_ke_proc_dir;
+static bool pmicwd_proc_created;
 
 static ssize_t proc_force_shutdown_read(struct file *file,
 				char __user *buf, size_t size, loff_t *ppos)
@@ -532,7 +533,10 @@ void pmicwd_init(struct platform_device *pdev, struct qpnp_pon *pon, bool sys_re
 			pon->pmicwd_state = PMIC_WD_DEFAULT_ENABLE | (PMIC_WD_DEFAULT_TIMEOUT << 8) |
 				(PON_POWER_OFF_HARD_RESET << 16);
 		}
-		proc_create("pmicWd", 0666, NULL, &pmicwd_proc_fops);
+		if (!pmicwd_proc_created) {
+			if (proc_create("pmicWd", 0666, NULL, &pmicwd_proc_fops))
+				pmicwd_proc_created = true;
+		}
 		mutex_init(&pon->wd_task_mutex);
 		#if PMIC_WD_DEFAULT_ENABLE
 		pon->wd_task = kthread_create(pmicwd_kthread, pon,"pmicwd");
