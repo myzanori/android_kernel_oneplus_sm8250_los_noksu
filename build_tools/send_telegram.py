@@ -113,16 +113,15 @@ def main():
 • <b>ROMs</b>: OxygenOS 14 &amp; ColorOS 14–17
 • <b>Kernel</b>: 4.19.325-perf-Mystic-Kona-myzanori-{tag}
 • <b>Root &amp; Stealth</b>: ReSukiSU (35184) + SUSFS v2.3.0 + NoMount v2.1.0
-• <b>Tuning</b>: LZ4 ZRAM + UFS 3.1 Smooth Writeback + BBR TCP
+• <b>Tuning</b>: LZ4 ZRAM + Balanced Writeback + BBR TCP
 
 <b>Changelog:</b>
 <blockquote>
-• <b>Smooth UFS:</b> Tuned dirty ratios (5%/15%) to eliminate micro-stutters
-• <b>Clean Boot:</b> Silenced MTP order-8 alloc dump with __GFP_NOWARN
-• <b>Memory Fix:</b> Resolved page_alloc atomic warning in zsmalloc
-• <b>Multi-PMIC Guard:</b> Prevented duplicate /proc/pmicWd registration
-• <b>Logger v1.2:</b> Zero-overhead tool with 0% background battery drain
-• <b>100% Clean:</b> 0 Warnings, 0 Bugs, 0 Call Traces across entire boot
+• <b>Battery &amp; Deep Sleep:</b> Resolved idle/travel drain by restoring balanced writeback (10%/20%) and standard 30s dirty expiry
+• <b>Dynamic Scaling:</b> Restored natural Little-core downscaling to 300-600 MHz and full Deep Doze entry
+• <b>ColorOS 15 &amp; OOS 14 Harmony:</b> Blended v1.0.35 power efficiency with v1.0.38+ stability
+• <b>Clean Boot:</b> 0 Warnings, 0 Bugs, 0 Call Traces across entire boot
+• <b>Universal:</b> Full SM8250 Kona support across Android 11–18
 </blockquote>
 📦 <b>Attached in this Single Post:</b>
 1. Kernel AnyKernel3 Zip
