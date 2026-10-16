@@ -69,9 +69,8 @@ static long ratelimit_pages = 32;
 
 /*
  * Start background writeback (via writeback threads) at this percentage
- * Mystic Kernel: smooth writeback on UFS 3.1 flash to prevent I/O micro-stutters
  */
-int dirty_background_ratio = 5;
+int dirty_background_ratio = 10;
 
 /*
  * dirty_background_bytes starts at 0 (disabled) so that it is a function of
@@ -88,7 +87,7 @@ int vm_highmem_is_dirtyable;
 /*
  * The generator of dirty data starts writeback at this percentage
  */
-int vm_dirty_ratio = 15;
+int vm_dirty_ratio = 20;
 
 /*
  * vm_dirty_bytes starts at 0 (disabled) so that it is a function of

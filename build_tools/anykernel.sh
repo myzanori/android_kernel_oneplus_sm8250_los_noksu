@@ -4,7 +4,7 @@
 ### AnyKernel setup
 # global properties
 properties() { '
-kernel.string=Mystic Kernel v1.0.35 (stable) for OnePlus 9R / 8T (SM8250) by myzanori
+kernel.string=Mystic Kernel v1.0.39 (hybrid stable) for OnePlus 9R / 8T (SM8250) by myzanori
 do.devicecheck=1
 do.modules=0
 do.systemless=1
@@ -57,7 +57,7 @@ PATCH_VBMETA_FLAG=auto;
 
 ui_print " ";
 ui_print "========================================";
-ui_print "  Mystic Kernel v1.0.35 (stable)        ";
+ui_print "  Mystic Kernel v1.0.39 (hybrid stable) ";
 ui_print "  OnePlus 9R / 8T (SM8250 Kona)         ";
 ui_print "  ReSukiSU + SUSFS v2.3.0 + NoMount v2.1.0";
 ui_print "----------------------------------------";
