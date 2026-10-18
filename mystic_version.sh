@@ -3,7 +3,7 @@
 # Single source of truth for Mystic Kernel branding
 MYSTIC_BASE="1.0"                                   # bump by hand for major/minor
 # Set to force an explicit build number (stable release); empty = git-derived.
-MYSTIC_BUILD_OVERRIDE="40"
+MYSTIC_BUILD_OVERRIDE="41"
 
 _last_tag="$(git describe --tags --abbrev=0 --match 'mystic-*' 2>/dev/null)"
 if [ -n "$_last_tag" ]; then

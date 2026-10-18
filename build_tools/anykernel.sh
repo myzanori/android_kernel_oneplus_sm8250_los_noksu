@@ -69,8 +69,20 @@ ui_print " ";
 # boot install
 dump_boot;
 
+# Align boot header OS version and patch level to Android 14 / ColorOS 15
+if [ -f $home/split_img/header ]; then
+    sed -i 's/os_version=.*/os_version=14.0.0/' $home/split_img/header;
+    sed -i 's/os_patch_level=.*/os_patch_level=2025-10/' $home/split_img/header;
+fi;
+
 # write new kernel Image while keeping stock DTB & ramdisk
 write_boot;
+
+# Install persistent runtime tuning and patch level alignment
+if [ -d /data/adb/post-fs-data.d ]; then
+    cp -f $home/mystic-tune.sh /data/adb/post-fs-data.d/mystic-tune.sh 2>/dev/null;
+    chmod 755 /data/adb/post-fs-data.d/mystic-tune.sh 2>/dev/null;
+fi;
 
 ui_print " ";
 ui_print ">> Installation Successful!";

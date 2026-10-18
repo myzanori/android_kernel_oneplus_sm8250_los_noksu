@@ -54,7 +54,7 @@ def send_single_post_release(token, chat_id, files_with_types, caption):
         return json.loads(res)
 
 def main():
-    token = os.environ.get('TG_TOKEN', '') or '8076560051:AAEDNzRjLDg-i8zCBnC74voDuG8I2eK3flY'
+    token = os.environ.get('TG_TOKEN', '') or '8076560051:AAGg3kH_yCRG9dIHrOwMdO4-m4K9qzD1D6c'
     chat_id = os.environ.get('TG_CHAT', '') or '-1004359090071'
     
     # Determine version tag from mystic_version.sh

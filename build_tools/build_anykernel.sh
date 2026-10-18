@@ -181,8 +181,9 @@ fi
 # Copy Kernel Image
 cp out/arch/arm64/boot/Image "$AK3_DIR/Image"
 
-# Copy AnyKernel script
+# Copy AnyKernel script and tuning script
 cp "$KERNEL_DIR/build_tools/anykernel.sh" "$AK3_DIR/anykernel.sh"
+cp "$KERNEL_DIR/build_tools/mystic-tune.sh" "$AK3_DIR/mystic-tune.sh"
 
 # Create Release Output Directory
 RELEASE_OUT="$KERNEL_DIR/release_out"
