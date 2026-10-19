@@ -102,26 +102,37 @@ def main():
         return
     logger_zip = logger_files[0]
 
+    rom = os.environ.get('MYSTIC_ROM', '')
+    if not rom:
+        try:
+            rom = subprocess.check_output(
+                ["bash", "-c", ". ./mystic_version.sh >/dev/null 2>&1 && echo $MYSTIC_ROM"]
+            ).decode().strip()
+        except Exception:
+            pass
+    if not rom:
+        rom = "ColorOS 15"
+
     files_with_types = [
         (kernel_zip, "application/zip"),
         (resukisu_apk, "application/vnd.android.package-archive"),
         (logger_zip, "application/zip")
     ]
 
-    caption = f"""🔥 <b>MYSTIC KERNEL {tag} — UNIVERSAL KONA</b> 🔥
+    caption = f"""🔥 <b>MYSTIC KERNEL {tag} — {rom.upper()}</b> 🔥
 • <b>Devices</b>: OnePlus 9R &amp; OnePlus 8T
-• <b>ROMs</b>: OxygenOS 14 &amp; ColorOS 14–17
+• <b>ROM Target</b>: {rom}
 • <b>Kernel</b>: 4.19.325-perf-Mystic-Kona-myzanori-{tag}
-• <b>Root &amp; Stealth</b>: ReSukiSU (35184) + SUSFS v2.3.0 + NoMount v2.1.0
+• <b>Root &amp; Stealth</b>: ReSukiSU (35184) + SUSFS v2.3.0 Stable
 • <b>Tuning</b>: LZ4 ZRAM + Balanced Writeback + BBR TCP
 
 <b>Changelog:</b>
 <blockquote>
-• <b>Battery &amp; Deep Sleep:</b> Resolved idle/travel drain by restoring balanced writeback (10%/20%) and standard 30s dirty expiry
-• <b>Dynamic Scaling:</b> Restored natural Little-core downscaling to 300-600 MHz and full Deep Doze entry
-• <b>ColorOS 15 &amp; OOS 14 Harmony:</b> Blended v1.0.35 power efficiency with v1.0.38+ stability
-• <b>Clean Boot:</b> 0 Warnings, 0 Bugs, 0 Call Traces across entire boot
-• <b>Universal:</b> Full SM8250 Kona support across Android 11–18
+• <b>AnyKernel3 Fix:</b> Multi-source recovery slot detection (fixes Error 1 on TWRP/OrangeFox/ColorOS 15)
+• <b>NoMount Soft Reboot Fix:</b> Completely disabled VFS dentry hijacking to guarantee rock-solid framework stability
+• <b>7 Stock OEM Subsystems:</b> Horae shell thermal zones (front/frame/back), death healer hung-task recovery, ALS/pressure calibration, UFS 3.1 health tracking
+• <b>Memory &amp; Swap Safety:</b> Removed intrusive boot-time swapoff to prevent memory allocation panics
+• <b>Performance &amp; Battery:</b> Restored balanced writeback, relaxed dirty expiry, and smooth schedutil latency
 </blockquote>
 📦 <b>Attached in this Single Post:</b>
 1. Kernel AnyKernel3 Zip
