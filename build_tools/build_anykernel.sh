@@ -127,10 +127,9 @@ echo ">>> Applying Mystic Kernel Configuration..."
 ./scripts/config --file out/.config --enable KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
 ./scripts/config --file out/.config --enable KSU_SUSFS_OPEN_REDIRECT
 ./scripts/config --file out/.config --enable KSU_SUSFS_SUS_MAP
-# Kernel-side NoMount (VFS path redirection), upstream v2.1.0 (fs/nomount/).
-# Required for the NoMount v2.1.0 metamodule; without matching kernel support
-# the module reports "Kernel not patched or module failed to load".
-./scripts/config --file out/.config --enable NOMOUNT
+# Kernel-side NoMount disabled: avoids VFS dentry hijacking and soft reboots
+# on ColorOS 15 / OxygenOS 14. SUSFS v2.3.0 handles root hiding safely.
+./scripts/config --file out/.config --disable NOMOUNT
 
 # Networking & Latency
 ./scripts/config --file out/.config --enable TCP_CONG_ADVANCED
@@ -181,9 +180,13 @@ fi
 # Copy Kernel Image
 cp out/arch/arm64/boot/Image "$AK3_DIR/Image"
 
-# Copy AnyKernel script and tuning script
+# Copy AnyKernel script, tools, and tuning script
 cp "$KERNEL_DIR/build_tools/anykernel.sh" "$AK3_DIR/anykernel.sh"
 cp "$KERNEL_DIR/build_tools/mystic-tune.sh" "$AK3_DIR/mystic-tune.sh"
+if [ -f "$KERNEL_DIR/build_tools/tools/ak3-core.sh" ]; then
+    mkdir -p "$AK3_DIR/tools"
+    cp -f "$KERNEL_DIR/build_tools/tools/ak3-core.sh" "$AK3_DIR/tools/ak3-core.sh"
+fi
 
 # Create Release Output Directory
 RELEASE_OUT="$KERNEL_DIR/release_out"

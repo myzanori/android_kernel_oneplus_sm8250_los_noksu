@@ -28,8 +28,8 @@ export MYSTIC_DEVICE="Kona"
 export MYSTIC_PLATFORM="Kona"
 export MYSTIC_ROM="Universal"
 export MYSTIC_VERSION="${MYSTIC_BASE}.${MYSTIC_BUILD}"
-# Stable build: MODVERSIONS=n, vendor-compat CRC, NoMount v2.1.0, SUSFS v2.3.0,
-# ReSukiSU v4.1.0. Universal for OnePlus 9R (lemonades) + 8T (kebab).
+# Stable build: MODVERSIONS=n, vendor-compat CRC, SUSFS v2.3.0,
+# ReSukiSU v4.2.0. Universal for OnePlus 9R (lemonades) + 8T (kebab).
 export MYSTIC_FLAVOUR="ReSukiSU_SUSFS_Stable"
 
 # full artifact prefix
