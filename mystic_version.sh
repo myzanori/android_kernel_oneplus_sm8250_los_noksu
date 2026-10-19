@@ -26,15 +26,15 @@ export MYSTIC_NAME="Mystic Kernel"
 export MYSTIC_AUTHOR="myzanori"
 export MYSTIC_DEVICE="Kona"
 export MYSTIC_PLATFORM="Kona"
-export MYSTIC_ROM="Universal"
+export MYSTIC_ROM="COS15"
 export MYSTIC_VERSION="${MYSTIC_BASE}.${MYSTIC_BUILD}"
 # Stable build: MODVERSIONS=n, vendor-compat CRC, SUSFS v2.3.0,
-# ReSukiSU v4.2.0. Universal for OnePlus 9R (lemonades) + 8T (kebab).
-export MYSTIC_FLAVOUR="ReSukiSU_SUSFS_Stable"
+# ReSukiSU v4.2.0 for OnePlus 9R (lemonades) + 8T (kebab) on ColorOS 15.
+export MYSTIC_FLAVOUR="ReSukiSU_SUSFS"
 
 # full artifact prefix
-export MYSTIC_PREFIX="Mystic_${MYSTIC_DEVICE}_${MYSTIC_AUTHOR}_${MYSTIC_ROM}_v${MYSTIC_VERSION}"
-export MYSTIC_UNIFIED_PREFIX="Mystic_Kona_${MYSTIC_AUTHOR}_${MYSTIC_ROM}_v${MYSTIC_VERSION}"
-export MYSTIC_LOCALVERSION="-perf-Mystic-Kona-myzanori-v${MYSTIC_VERSION}"
+export MYSTIC_PREFIX="Mystic_${MYSTIC_DEVICE}_${MYSTIC_ROM}_v${MYSTIC_VERSION}"
+export MYSTIC_UNIFIED_PREFIX="Mystic_Kona_${MYSTIC_ROM}_v${MYSTIC_VERSION}"
+export MYSTIC_LOCALVERSION="-perf-Mystic-Kona-myzanori-COS15-v${MYSTIC_VERSION}"
 
 echo "Mystic Kernel Branding Loaded: $MYSTIC_PREFIX (LOCALVERSION: $MYSTIC_LOCALVERSION)"

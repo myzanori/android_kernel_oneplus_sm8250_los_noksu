@@ -57,9 +57,9 @@ PATCH_VBMETA_FLAG=auto;
 
 ui_print " ";
 ui_print "========================================";
-ui_print "  Mystic Kernel v1.0.50                 ";
-ui_print "  OnePlus 9R / 8T (SM8250 Kona)         ";
-ui_print "  ReSukiSU + SUSFS v2.3.0 Stable        ";
+ui_print "  Mystic Kernel v1.0.50 (ColorOS 15)    ";
+ui_print "  OnePlus 9R & 8T (SM8250 Kona)         ";
+ui_print "  ReSukiSU + SUSFS v2.3.0 + NoMount v2.1";
 ui_print "----------------------------------------";
 ui_print "  Developer : myzanori                  ";
 ui_print "  GitHub    : https://github.com/myzanori";
